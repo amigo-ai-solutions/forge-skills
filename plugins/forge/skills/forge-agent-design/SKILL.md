@@ -52,8 +52,8 @@ patterns stabilize; reach **up** only when the rung below provably can't hold it
 | **Router -> orchestrated skills** | several distinct, bounded modes | higher | a context-graph decision-style state routing to several `skill`s |
 | **Multi-agent** | genuinely parallel, separable work | highest — coordination + drift | multiple agents/services; only for parallel, read-only work — keep writes single-threaded |
 
-The agent's **identity/persona** carries most behavior — put it in a `persona`
-(`forge platform persona create`), not in scattered instructions.
+The agent's **identity/voice** carries most behavior — author it in the `agent`'s own
+global instructions (reinforced by the `context_graph`), not as scattered per-state rules.
 
 For the full rung table, a symptom -> forge-entity lookup, and worked examples, see
 `${CLAUDE_PLUGIN_ROOT}/skills/forge-agent-design/reference/placement-cascade.md`.
@@ -128,8 +128,8 @@ deterministic.
 - [ ] Any **must-be-exact / high-stakes** behavior? -> isolate it into a testable `skill`
   (`forge platform skill create` / `test`); recognition stays on the strong model;
   parity-gated cutover; fallback retained.
-- [ ] Is the agent's identity/voice scattered across instructions? -> consolidate into a
-  `persona` (`forge platform persona create`).
+- [ ] Is the agent's identity/voice scattered across instructions? -> consolidate it into
+  the `agent`'s own global instructions, not per-state rules.
 - [ ] **Writes single-threaded?** Context shared in full? Keep exactly one writer.
 - [ ] What is the **eval/parity gate** and the **rollback**? -> prove parity with
   simulations, deploy via a `service` + `version-set`, cut over with

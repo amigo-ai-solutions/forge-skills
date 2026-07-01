@@ -1,6 +1,6 @@
 ---
 name: forge-build-agent
-description: Stand up an Amigo agent or service end-to-end with the forge CLI, building entities in cascade order - persona (identity), functions (deterministic reducible work), a single-state context_graph, the agent, skills (must-be-exact bounded concerns), a service (wiring), and a pinned version-set. Use when a forge binary is on PATH and the user asks to build, stand up, scaffold, author, create, or wire an Amigo agent, service, context-graph, persona, skill, or function - either directly on the Platform (forge platform ... create/register) or by editing JSON under local/<env>/entity_data and pushing it (forge sync-to-local, forge platform push), then binding versions with forge platform version-set upsert.
+description: Stand up an Amigo agent or service end-to-end with the forge CLI, building entities in cascade order - functions (deterministic reducible work), a single-state context_graph, the agent (its identity/voice lives here), skills (must-be-exact bounded concerns), a service (wiring), and a pinned version-set. Use when a forge binary is on PATH and the user asks to build, stand up, scaffold, author, create, or wire an Amigo agent, service, context-graph, skill, or function - either directly on the Platform (forge platform ... create/register) or by editing JSON under local/<env>/entity_data and pushing it (forge sync-to-local, forge platform push), then binding versions with forge platform version-set upsert.
 ---
 
 # Forge Build Agent
@@ -12,7 +12,7 @@ The concrete "stand up an agent/service with forge" workflow. It builds entities
 Use this skill when the user says things like:
 
 - "Build / stand up / scaffold a new Amigo agent (or service) with forge."
-- "Create a persona / context-graph / agent / skill / function on the Platform."
+- "Create a context-graph / agent / skill / function on the Platform."
 - "Wire these into a service and pin the versions."
 - "I have JSON under `local/staging/entity_data` - push it and bind a version-set."
 
@@ -28,13 +28,12 @@ Use this skill when the user says things like:
 Build bottom-up so each entity can reference the ones beneath it:
 
 1. Preflight: platform env file + auth.
-2. Author identity as a `persona`.
-3. Push reducible, must-be-deterministic work into `function`s.
-4. Start with a single-state `context_graph`.
-5. Create the `agent`.
-6. Isolate must-be-exact or bounded concerns as `skill`s and route to them from the graph.
-7. Bind everything into a `service`.
-8. Pin versions with a writable `version-set` (e.g. `candidate`).
+2. Push reducible, must-be-deterministic work into `function`s.
+3. Start with a single-state `context_graph`.
+4. Create the `agent` — author its identity/voice in the agent's own global instructions.
+5. Isolate must-be-exact or bounded concerns as `skill`s and route to them from the graph.
+6. Bind everything into a `service`.
+7. Pin versions with a writable `version-set` (e.g. `candidate`).
 
 Two authoring paths reach the same result. Pick one:
 
@@ -69,14 +68,7 @@ Required config: `PLATFORM_API_URL`, `PLATFORM_WORKSPACE_ID`, and either `PLATFO
 
 ### Path A - API-first (create directly on the Platform)
 
-#### Step 2A - Author identity as a persona
-
-```bash
-forge platform persona create --body '{"name":"Acme Support Persona","description":"Warm, concise support voice"}'
-forge platform persona list --json
-```
-
-#### Step 3A - Push reducible work into deterministic functions
+#### Step 2A - Push reducible work into deterministic functions
 
 Isolate anything that must be exact/repeatable (lookups, calculations, formatting) as a `function`, then confirm it resolves. `--input-schema` takes a path to a JSON file, so write the schema out first.
 
@@ -91,7 +83,7 @@ forge platform function list --json
 forge platform function test lookup_order_status --input '{"order_id":"A-1001"}' --json
 ```
 
-#### Step 4A - Start with a single-state context_graph
+#### Step 3A - Start with a single-state context_graph
 
 Begin minimal - one state - and iterate with `create-version`.
 
@@ -102,7 +94,11 @@ forge platform context-graph create-version <graph-id> --file ./graph_v2.json
 forge platform context-graph list-versions <graph-id> --json
 ```
 
-#### Step 5A - Create the agent
+#### Step 4A - Create the agent (identity/voice lives here)
+
+The agent carries its own identity, voice, and global instructions — author them here (in
+the agent's definition and versions), reinforced by the context graph. There is no separate
+persona entity.
 
 ```bash
 forge platform agent create --name "Acme Support Agent" --description "Handles order and account questions"
@@ -111,7 +107,7 @@ forge platform agent list --json
 forge platform agent create-version <agent-id> --file ./agent_v2.json
 ```
 
-#### Step 6A - Isolate bounded concerns as skills, route from the graph
+#### Step 5A - Isolate bounded concerns as skills, route from the graph
 
 Author must-be-exact or narrowly-scoped concerns as `skill`s, test them, then reference them from the context-graph states that should invoke them.
 
@@ -121,7 +117,7 @@ forge platform skill test <skill-id> --body '{"input":"sample caller turn"}'
 forge platform skill references <skill-id>
 ```
 
-#### Step 7A - Bind everything into a service
+#### Step 6A - Bind everything into a service
 
 A service wires a specific agent + context-graph together.
 
@@ -139,7 +135,7 @@ forge platform service voice-config <service-id> --get
 forge platform service escalation-policy <service-id> --get
 ```
 
-#### Step 8A - Pin versions with a version-set
+#### Step 7A - Pin versions with a version-set
 
 Pin the agent + context-graph versions into a writable, named version set (use a name you own, e.g. `candidate`). Do NOT target the `edge` set: it auto-tracks the latest versions and the CLI refuses to modify it (`cannot modify the 'edge' version set`). Version-set mutations are dry-run by default; re-run with `--apply` once the plan looks right.
 
@@ -163,11 +159,11 @@ forge platform version-set promote <service-id> candidate release --apply
 forge sync-to-local --all --env staging
 ```
 
-Entities land under `local/staging/entity_data/<type>/*.json` (types: `persona`, `context_graph`, `agent`, `skill`, `service`, ... ). The local->Platform UUID map in `local/staging/.platform_id_map.json` is managed by `forge platform push` - do not hand-edit it.
+Entities land under `local/staging/entity_data/<type>/*.json` (types: `context_graph`, `agent`, `skill`, `service`, ... ). The local->Platform UUID map in `local/staging/.platform_id_map.json` is managed by `forge platform push` - do not hand-edit it.
 
 #### Step 3B - Author the cascade on disk
 
-Edit the JSON files in cascade order (persona -> functions -> single-state context_graph -> agent -> skills routed from the graph -> service). Keep the graph minimal to start.
+Edit the JSON files in cascade order (functions -> single-state context_graph -> agent -> skills routed from the graph -> service). Keep the graph minimal to start.
 
 #### Step 4B - Validate
 
@@ -194,7 +190,7 @@ forge platform push --all --env staging --apply
 
 #### Step 6B - Pin the version-set
 
-Same as Step 8A - pin a writable named set (not `edge`), dry run, then `--apply`:
+Same as Step 7A - pin a writable named set (not `edge`), dry run, then `--apply`:
 
 ```bash
 forge platform version-set upsert <service-id> candidate --agent-version 1 --context-graph-version 1

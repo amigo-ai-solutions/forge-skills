@@ -30,8 +30,8 @@ below provably can't hold it.
 | **Router -> orchestrated skills** | several distinct, bounded modes | higher | a context-graph **decision-style** state routing to several `skill`s | edit the routing `context_graph` state; `forge validate --entity-type context_graph --env <env>` |
 | **Multi-agent** | genuinely **parallel, separable, read-only** work | highest — coordination + drift | multiple `agent`s / `service`s; keep **writes single-threaded** | `forge platform service list` · design so exactly one writer commits |
 
-**Identity/persona** carries most behavior — put it in a `persona`
-(`forge platform persona create --file/-f persona.json`), not in scattered instructions.
+**Identity/voice** carries most behavior — author it in the `agent`'s own global
+instructions (reinforced by the `context_graph`), not as scattered per-state rules.
 
 **Deploy + eval/parity gate + rollback** (any rung): deploy via a `service` + a
 `version-set`, prove parity with simulations, cut over per surface, keep rollback ready.
@@ -69,7 +69,7 @@ forge platform version-set rollback <service-id> --apply                     # r
 | A **legal/safety/clinical** answer that must **never deviate** | Isolated skill (testable to 100%) | route to an isolated `skill`; recognition stays on the strong model; `forge platform skill test` to full coverage |
 | A pile of competing **"HIGHEST PRIORITY"** rules in one prompt/state | Split on **contradiction** | separate the contradicting concerns into distinct states/skills — length is not the signal, contradiction is |
 | Agent keeps **selecting the wrong tool** / tool overload | Split | fewer tools per agent; route modes via `context_graph` states |
-| Voice/identity/tone **scattered** across instructions | Persona | consolidate into a `persona` (`forge platform persona create`) |
+| Voice/identity/tone **scattered** across instructions | The agent | author identity in the `agent`'s own global instructions, reinforced by the `context_graph` |
 | Two agents that could **both write** the same state | Keep writes single-threaded | exactly one writer commits; others contribute intelligence only |
 
 ---
