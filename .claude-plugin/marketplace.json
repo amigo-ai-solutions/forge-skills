@@ -1,0 +1,12 @@
+{
+  "name": "amigo-forge",
+  "owner": { "name": "Amigo", "email": "support@amigo.ai" },
+  "description": "Claude Code skills for driving the Amigo forge CLI.",
+  "plugins": [
+    {
+      "name": "forge",
+      "source": "./plugins/forge",
+      "description": "Skills for syncing entities, running platform commands, and simulation testing with the forge binary."
+    }
+  ]
+}
