@@ -1,0 +1,20 @@
+---
+name: forge-<verb>
+description: <One-two sentences. Start with what it does, then "Use when ..." listing concrete customer triggers - a forge binary on PATH, a project with .env.platform.* or local/<org>/entity_data, or the user asking to <sync/validate/publish/simulate/run platform commands>.>
+---
+
+# Forge <Verb>
+
+## When this applies
+
+<observable preconditions>
+
+## Workflow
+
+<numbered steps that invoke `forge ...` commands; reference bundled scripts as
+${CLAUDE_PLUGIN_ROOT}/skills/<name>/scripts/...>
+
+## Safety
+
+<read-only first; mutations only with explicit --apply/--yes when the user asks; never write
+real customer data into notes/commits/PRs>
