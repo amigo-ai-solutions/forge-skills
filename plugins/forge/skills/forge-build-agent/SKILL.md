@@ -1,6 +1,6 @@
 ---
 name: forge-build-agent
-description: Stand up an Amigo agent or service end-to-end with the forge CLI, building entities in cascade order - functions (deterministic reducible work), a single-state context_graph, the agent (its identity/voice lives here), skills (must-be-exact bounded concerns), a service (wiring), and a pinned version-set. Use when a forge binary is on PATH and the user asks to build, stand up, scaffold, author, create, or wire an Amigo agent, service, context-graph, skill, or function - either directly on the Platform (forge platform ... create/register) or by editing JSON under local/<env>/entity_data and pushing it (forge sync-to-local, forge platform push), then binding versions with forge platform version-set upsert.
+description: Stand up an Amigo agent or service end-to-end with the forge CLI, building entities in cascade order - functions (deterministic reducible work), a single-state context_graph, the agent (its identity/voice lives here), skills (must-be-exact bounded concerns), a service (wiring), and a pinned version-set. Use when a forge binary is on PATH and the user asks to build, stand up, scaffold, author, create, or wire an Amigo agent, service, context-graph, skill, or function - either directly on the Platform (forge platform ... create/register) or by editing JSON under local/<env>/entity_data and pushing it with forge platform push, then binding versions with forge platform version-set upsert.
 ---
 
 # Forge Build Agent
@@ -46,7 +46,7 @@ Read-only first: run `list`/`get`/`status` and dry-run pushes before any mutatio
 
 ### Step 1 - Preflight (both paths)
 
-Config comes from an env file, not a profile store. The Platform reads `.env.platform.<env>` first, then falls back to `.env.<env>` in the working directory (process env vars also apply). Confirm auth against the Platform identity service.
+Config comes from an env file, not a profile store. The Platform reads `.env.platform.<env>` in the working directory (process env vars also apply). Confirm auth against the Platform identity service.
 
 ```bash
 # A .env.platform.staging in the cwd supplies the required config, e.g.:
@@ -97,8 +97,8 @@ forge platform context-graph list-versions <graph-id> --json
 #### Step 4A - Create the agent (identity/voice lives here)
 
 The agent carries its own identity, voice, and global instructions — author them here (in
-the agent's definition and versions), reinforced by the context graph. There is no separate
-persona entity.
+the agent's definition and versions), reinforced by the context graph. Identity is not a
+separate entity.
 
 > **How to author the agent's instructions and design context-graph states** — identity's
 > ~70-80% rule, action guidelines vs. boundary constraints, minimal viable constraint, the
@@ -163,13 +163,15 @@ forge platform version-set promote <service-id> candidate release --apply
 
 ### Path B - Files-first (edit JSON on disk, then push)
 
-#### Step 2B - Pull current state to local
+#### Step 2B - Author entities on disk
+
+There is no bulk pull-to-disk command. Fetch current entities with `forge platform <entity> get` when you need them, then write/edit the JSON under `local/<env>/entity_data/<type>/`.
 
 ```bash
-forge sync-to-local --all --env staging
+forge platform agent get 00000000-0000-0000-0000-000000000000 --env staging
 ```
 
-Entities land under `local/staging/entity_data/<type>/*.json` (types: `context_graph`, `agent`, `skill`, `service`, ... ). The local->Platform UUID map in `local/staging/.platform_id_map.json` is managed by `forge platform push` - do not hand-edit it.
+Entities live under `local/staging/entity_data/<type>/*.json` (types: `context_graph`, `agent`, `skill`, `service`, ... ). The local->Platform UUID map in `local/staging/.platform_id_map.json` is managed by `forge platform push` - do not hand-edit it.
 
 #### Step 3B - Author the cascade on disk
 

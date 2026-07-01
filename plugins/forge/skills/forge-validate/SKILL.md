@@ -1,6 +1,6 @@
 ---
 name: forge-validate
-description: Runs the local, no-auth pre-push validation gate over your Amigo entity JSON with `forge validate --entity-type <type> --env <env>` or `forge validate --all --env <env>`. Use when a forge binary is on PATH and the project has local/<env>/entity_data (or .env.platform.*), and the user asks to validate/check/lint local forge entities before a sync-to-remote or platform push, e.g. "check my forge entities", "validate my agent/context_graph/service JSON", or "is my local entity data valid before I push?".
+description: Runs the local, no-auth pre-push validation gate over your Amigo entity JSON with `forge validate --entity-type <type> --env <env>` or `forge validate --all --env <env>`. Use when a forge binary is on PATH and the project has local/<env>/entity_data (or .env.platform.*), and the user asks to validate/check/lint local forge entities before a platform push, e.g. "check my forge entities", "validate my agent/context_graph/service JSON", or "is my local entity data valid before I push?".
 ---
 
 # Forge Validate
@@ -8,7 +8,7 @@ description: Runs the local, no-auth pre-push validation gate over your Amigo en
 `forge validate` is the local pre-push gate. It reads only the on-disk entity JSON
 under `local/<env>/entity_data/<type>/*.json`, checks each file, and reports pass/fail.
 It needs no authentication, calls no API, and mutates nothing. Run it on the entity
-types you changed (or `--all`) before every `sync-to-remote` / `platform push`.
+types you changed (or `--all`) before every `forge platform push`.
 
 ## When to use
 
@@ -34,8 +34,8 @@ Use one of these for `--entity-type` (or `--all` to validate every type):
 
 ```
 agent            context_graph        dynamic_behavior_set   metric
-persona          scenario             service                tool
-unit_test_set    unit_test            user_dimension
+scenario         service              tool                   unit_test_set
+unit_test        user_dimension
 ```
 
 ## Workflow

@@ -143,7 +143,7 @@ deterministic.
 - When you hand off to build/validate/sync/simulate, stay **read-only first**
   (`forge platform ... list` / `get`, `forge platform tool-test resolve`,
   `forge validate`); run mutations only with an explicit `--apply` / `--yes` and only when
-  the user asks. `forge platform push`, `forge sync-to-remote`, and mutating `version-set`
+  the user asks. `forge platform push` and mutating `version-set`
   commands are **dry-run by default** — keep them that way until the user confirms.
 - Use **synthetic data only** in simulations (placeholder org `Acme Corp`, phone
   `555-010-1234`, UUID `00000000-0000-0000-0000-000000000000`). Never write real customer

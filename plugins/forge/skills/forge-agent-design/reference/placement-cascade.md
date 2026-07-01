@@ -5,7 +5,7 @@ a symptom -> forge-entity lookup, or worked examples. The skill body has the sum
 file is the deep reference.
 
 Every `forge ...` command below is a real `agent-forge-go` command. Design-time reasoning
-is read-only; mutations (`forge platform push`, `forge sync-to-remote`, mutating
+is read-only; mutations (`forge platform push` and mutating
 `version-set`) are dry-run by default and only go real with `--apply`.
 
 ---
@@ -38,9 +38,9 @@ instructions (reinforced by the `context_graph`), not as scattered per-state rul
 
 Version-set vocabulary:
 
-- **`edge`** — a built-in set that auto-tracks the *latest* pushed agent/context-graph
-  versions. Always present once the service has versions; **immutable** — you cannot
-  `upsert` it or `promote` into it, but you can simulate against it and `promote` *from* it.
+- **`edge`** — a **reserved name**: the CLI refuses to `upsert` it or `promote` into it
+  (`cannot modify the 'edge' version set`), and it is **not guaranteed to exist** on a
+  service, so don't target it.
 - **`release`** — the live/production set; a writable `promote` / `upsert` target.
 - a **named set** (e.g. `candidate`) — a writable set you pin to exact versions with
   `upsert`, then `promote` into `release`.
@@ -97,7 +97,7 @@ forge platform sim session-observe      <session-id>
 forge platform sim session-intelligence <session-id>
 ```
 
-Only after parity holds do you `forge platform version-set promote <service-id> edge release --apply`
+Only after parity holds do you `forge platform version-set promote <service-id> candidate release --apply`
 (keeping `forge platform version-set rollback <service-id> --apply` as the fallback).
 
 ---
@@ -165,7 +165,7 @@ forge platform skill test <skill-id> --file escalation_cases.json
   the case; the isolated skill only generates the exact wording.
 - **Prove parity** (see above) on a binary, per-category eval *before* removing the old
   path; keep the old path live as **fallback**.
-- **Cut over per surface** with `forge platform version-set promote <service-id> edge release --apply`;
+- **Cut over per surface** with `forge platform version-set promote <service-id> candidate release --apply`;
   keep `forge platform version-set rollback <service-id> --apply` ready.
 
 ---
