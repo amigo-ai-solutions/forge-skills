@@ -1,6 +1,6 @@
 {
   "name": "forge",
   "description": "Skills for the Amigo forge CLI",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "author": { "name": "Amigo", "email": "support@amigo.ai" }
 }

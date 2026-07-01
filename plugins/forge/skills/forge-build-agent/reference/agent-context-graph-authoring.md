@@ -23,9 +23,9 @@ and voice alone** — who it is, what it knows, what it believes, how it talks. 
 
 - Author identity/voice in the **agent's own global instructions** (in the agent definition
   and its versions via `forge platform agent create` / `create-version`), reinforced by the
-  `context_graph`. There is no separate persona entity.
+  `context_graph`. Identity is not a separate entity.
 - **Diagnostic:** if you are stacking action rules or boundary constraints to compensate for a
-  thin persona, invest in characterization instead of piling rules onto the graph.
+  thin identity, invest in characterization instead of piling rules onto the graph.
 - **Why it matters for edge cases:** with a rich, coherent identity, off-happy-path moments
   are handled *axiomatically* — they feel like something this agent would naturally do. A thin
   identity makes the same moments feel random and off-script.
@@ -38,8 +38,8 @@ sketch, background/expertise/philosophy as depth, then behaviors and voice as fi
 Give the agent (and each `context_graph` state) a **single clear objective** — the goal to
 achieve before moving on. Keep it distinct from identity: identity is *who the agent is and
 how it acts*; the objective is *what this interaction is trying to accomplish*. Progress
-toward the objective is the **lowest-priority** driver — a coherent persona and its guidelines
-take precedence over rushing to the goal. Pursue the objective *through* the persona.
+toward the objective is the **lowest-priority** driver — a coherent identity and its guidelines
+take precedence over rushing to the goal. Pursue the objective *through* that identity.
 
 ### Two kinds of instruction — keep them separate
 
@@ -69,7 +69,7 @@ the **fewest constraints that reliably produce the behavior**.
   data is fine; a short prompt whose rules fight each other is not. **Contradiction, not
   length, is the signal to split.**
 - **State a clear priority order** so conflicts resolve deterministically: hard boundary
-  constraints and the active state's action guidelines first, then persona/behavior, then
+  constraints and the active state's action guidelines first, then identity/behavior, then
   voice/communication style, then progress toward the objective.
 - **One idea at a time in output** — favor a single concept per response and avoid stacked
   questions.
@@ -163,7 +163,7 @@ agent talks, what it is trying to accomplish, and what "done" means all shift. S
 
 Density sets the balance between the agent's identity and the graph's constraints:
 
-- **Light state** — minimal constraints; the agent's expertise and personality lead. Use where
+- **Light state** — minimal constraints; the agent's expertise and character lead. Use where
   good judgment and natural flow serve the user.
 - **Dense state** — many specific constraints; the graph dominates. Use only where
   consistency, compliance, or safety demand it.
@@ -296,7 +296,7 @@ Keep the field hierarchy clean and non-conflicting:
 - `objective` — the single testable completion contract.
 - `actions` — high-level WHAT, ordered. Keep them high-level; detailed must-persist context
   belongs in `action_guidelines` (guidelines stay visible throughout the state).
-- `action_guidelines` — HOW (tone, personalization, strategy).
+- `action_guidelines` — HOW (tone, tailoring, strategy).
 - `boundary_constraints` — hard limits that override everything.
 - `exit_conditions` — distinct, non-overlapping, each with a clear description and target.
 

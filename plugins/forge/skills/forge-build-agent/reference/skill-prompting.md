@@ -1,4 +1,4 @@
-# Authoring an Amigo skill (single Anthropic-model prompt + tools)
+# Authoring an Amigo skill (single model's system prompt + tools)
 
 Companion to the `forge-build-agent` skill. Use this when you are writing a `skill`'s
 system prompt and defining its tools. The skill body has the cascade; this file is the
@@ -8,10 +8,12 @@ prompt-and-tools deep reference.
 
 ## What a skill is
 
-An Amigo **`skill` is a single Anthropic-model system prompt that uses tools.** So
-"authoring a skill well" is two jobs:
+An Amigo **`skill` is a single model's system prompt plus its tools.** A skill runs on
+**one** model. The skill default is `claude-sonnet-4-6`, but the platform also supports
+OpenAI and Google Gemini models — see "Choosing and configuring a model" below to pick and
+tune the model. So "authoring a skill well" is two jobs:
 
-1. Write that system prompt using Anthropic's prompt-engineering techniques.
+1. Write that system prompt using solid prompt-engineering technique.
 2. Define its tools (each a forge `function`) so the model calls them correctly.
 
 You author skills for **must-be-exact or bounded concerns** that a `context_graph` state
@@ -25,8 +27,8 @@ stable across `version-set` bumps. Validate with `forge validate` and test with
 
 ## System-prompt structure checklist
 
-Apply Anthropic's techniques in roughly this priority order. Section the prompt with stable
-XML tags and reuse the same tag names across every skill you author.
+Apply these prompt-engineering techniques in roughly this priority order. Section the prompt
+with stable XML tags and reuse the same tag names across every skill you author.
 
 | # | Element | What to do | Why |
 |---|---|---|---|
@@ -188,21 +190,66 @@ synthetic fixtures before pinning: `forge platform skill test <skill-id> --file 
 
 ---
 
-## Choosing a model tier
+## Choosing and configuring a model
 
-Anthropic frames model choice around **capabilities, speed, cost, and effort.** Do not pin a
-model ID in guidance — IDs, prices, limits, and effort names change. Keep tier decisions at
-the **family** level and link Anthropic's live docs.
+The platform supports three model providers. A skill runs on **one** model, and the skill
+default is `claude-sonnet-4-6`.
 
-| Tier | Strengths | Trade-off | Good fit for a skill |
-|---|---|---|---|
-| **Opus** | Most capable; complex reasoning, long-horizon / high-autonomy work | Highest cost, moderate latency | The skill's hardest reasoning; must-be-exact judgment |
-| **Sonnet** | Best balance of speed and intelligence; the common production default | Fast, mid cost | Most tool-using skills |
-| **Haiku** | Fastest, most economical | Near-frontier for its class | High-volume, latency-sensitive, classification skills |
+| Provider | Model families | Notes |
+|---|---|---|
+| **OpenAI** | `gpt-` series and `o`-series (`o1`/`o3`/`o4`) reasoning models | Reasoning models (`o`-series, `gpt-5+`) expose `reasoning_effort`/`verbosity`. |
+| **Anthropic** | `claude` (Opus / Sonnet / Haiku families) | Extended thinking via `thinking_effort`. Skill default is `claude-sonnet-4-6`. |
+| **Google Gemini** | `gemini` (via Vertex) | — |
 
-Anthropic also ships a top-of-line generation above the standard lineup for the most
-demanding work — check the models overview for the current top model when you need maximum
-capability.
+**Tier idea (family level, all three providers offer both):** every provider ships a
+**high-capability** tier for the hardest reasoning / long-horizon work (higher cost, more
+latency) and a **fast, economical** tier for high-volume, latency-sensitive, or
+classification work. Do not pin a volatile model ID in guidance — IDs, prices, and effort
+names change. Keep tier decisions at the **family** level, use the model IDs your workspace's
+model catalog actually supports, and link the provider's live docs (for Claude, Anthropic's
+per-model docs below).
+
+### How to set the model
+
+Models are configured on a **version-set** via `llm_model_preferences`: a map keyed by
+interaction —
+
+- **`nav`** (a.k.a. select-next-action): the routing/navigation model.
+- **`engage`**: the conversation-response model.
+
+Each is an object: `{ "llm_name": "<model-id>", "params": {...}, "experience_controls": {...} }`.
+The **only** way to set `llm_model_preferences` is `--body`/`--file` (the `-a`/`-g` flags only
+override entity *versions*). The command is **dry-run by default** (prints
+`LLM preferences: N configured`); add `--apply` to commit.
+
+```bash
+# dry-run: preview the LLM preferences change
+forge platform version-set upsert <service-id> candidate --body '{
+  "llm_model_preferences": {
+    "nav":    { "llm_name": "claude-sonnet-4-6", "experience_controls": { "reasoning_effort": "low" } },
+    "engage": { "llm_name": "claude-sonnet-4-6", "experience_controls": { "reasoning_effort": "medium" } }
+  }
+}'
+
+# commit it
+forge platform version-set upsert <service-id> candidate --body '{ ... }' --apply
+```
+
+`turn_runtime` (`"native"` | `"openai-agents"`) is also set via `--body`/`--file`. Prefer a
+writable named set such as `candidate` for iteration; `release` is the live set and `edge` is
+reserved (the CLI refuses to modify it).
+
+### Per-provider tuning (in `experience_controls` or `params`)
+
+| Provider | Knob | Values / notes |
+|---|---|---|
+| **Universal** | `temperature` | 0-2. |
+| **Universal** | `top_p` | Prefer setting **one** of `temperature`/`top_p`, not both. |
+| **OpenAI (reasoning: `o`-series, `gpt-5+`)** | `reasoning_effort` | `none` \| `minimal` \| `low` \| `medium` \| `high` \| `xhigh`. |
+| **OpenAI (`gpt-5.x`)** | `verbosity` | `low` \| `medium` \| `high`. |
+| **OpenAI (reasoning models)** | `temperature` caveat | These models **reject** `temperature` unless reasoning is off. |
+| **OpenAI** | `service_tier` | `auto` \| `default` \| `flex` \| `priority` (OpenAI-only). |
+| **Anthropic (Claude)** | `thinking_effort` | `low` \| `medium` \| `high` in `params`; activates extended thinking. |
 
 **Authoring implications:**
 
@@ -212,30 +259,35 @@ capability.
   causes over-triggering now. Prefer general reasoning instructions over prescriptive
   step-by-step recipes; watch for over-eager, unrequested abstractions and add minimalism
   guardrails if you see them.
-- **Smaller/faster tiers benefit more from structure and examples.** A Haiku-tier
-  classification skill wants tight schemas, enumerated labels, and worked examples; an
-  Opus-tier open-ended skill needs less scaffolding and more room.
-- **Tune `effort` before switching tiers.** `effort` trades intelligence for latency/cost
-  *within one model* — raise it for multi-step reasoning and long agent loops, lower it for
-  short, scoped work. If reasoning is shallow on a hard problem, raise effort rather than
-  prompting around it. Thinking is also promptable ("use it only when it meaningfully
-  improves the answer; when in doubt, respond directly").
+- **Smaller/faster tiers benefit more from structure and examples.** A fast-tier
+  classification skill wants tight schemas, enumerated labels, and worked examples; a
+  high-capability open-ended skill needs less scaffolding and more room.
+- **Tune effort before switching tiers.** The provider's effort knob (`reasoning_effort` for
+  OpenAI, `thinking_effort` for Claude) trades intelligence for latency/cost *within one
+  model* — raise it for multi-step reasoning and long agent loops, lower it for short, scoped
+  work. If reasoning is shallow on a hard problem, raise effort rather than prompting around
+  it. Thinking is also promptable ("use it only when it meaningfully improves the answer;
+  when in doubt, respond directly").
 - **Pick the tier the skill's hardest turn actually needs**, then validate — don't pick by
   vibes. Some models keep thinking always-on, some default it off; verify per-model at author
   time.
-- **Keep prompts portable across upgrades:** express intent and scope explicitly, avoid hacks
-  that only compensated for an older model, and re-tune tool-triggering and effort guidance
-  when you move a skill to a new tier.
+- **Keep prompts portable across upgrades and providers:** express intent and scope
+  explicitly, avoid hacks that only compensated for an older model, and re-tune
+  tool-triggering and effort guidance when you move a skill to a new tier or provider. The
+  XML-sectioning and prompt-engineering techniques above are strongest for Claude but are
+  good general practice across providers; model-specific tuning is per-provider (the table
+  above).
 
-Model choice belongs in the skill/service configuration you push with forge — treat a tier
-change like any other change: validate, test, and bump the `version-set`.
+Model choice belongs in the version-set configuration you manage with forge — treat a model
+or tier change like any other change: validate, test, and pin/promote the `version-set`
+(dry-run first, then `--apply`).
 
 ---
 
 ## Test the skill with `forge platform skill test`
 
-Anthropic's most important step in choosing or tuning a model is **building a use-case
-eval set and running your real prompts/data across it.** For a forge skill, that means
+The most important step in choosing or tuning a model is **building a use-case eval set and
+running your real prompts/data across it.** For a forge skill, that means
 `forge platform skill test` plus your own fixtures — on **synthetic data only**.
 
 ```bash
@@ -270,7 +322,7 @@ parity holds.
 - [ ] Explicit "I don't know / escalate" fallback; grounding-in-sources for factual skills.
 - [ ] Every tool: 3-4+ sentence description, per-param descriptions, enums, required fields, high-signal responses, namespaced names, `input_examples` / `strict` where it matters.
 - [ ] `tool_choice: auto` + normal-intensity trigger prose by default; force only when necessary; imperative phrasing for action.
-- [ ] Tier chosen for the hardest turn; `effort` tuned before switching tiers; prompt kept portable.
+- [ ] Model set on the version-set via `llm_model_preferences` (`nav` + `engage`); tier chosen for the hardest turn; effort tuned before switching tiers; prompt kept portable across providers.
 - [ ] `forge validate` + `forge platform skill test` on synthetic fixtures before pinning the `version-set`.
 
 ---
