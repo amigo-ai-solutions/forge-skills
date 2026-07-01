@@ -45,8 +45,13 @@ XML tags and reuse the same tag names across every skill you author.
 <instructions> job, allowed/out-of-scope actions, numbered procedures </instructions>
 <constraints> rules, each with a one-line rationale </constraints>
 <examples>
-  <example> user input -> reasoning -> tool call(s) -> reply </example>
-  ... 3-5 total, one edge case ...
+  <!-- 3-5 filled turns (one an edge case); see the complete worked example below -->
+  <example>
+    User: "Move my Tuesday physical to later that week."
+    Reasoning: one appointment on file; caller wants the same week, later.
+    → appointments_open_slots(after="Tue", same_week=true)
+    Reply: "I can move your Tuesday 9:00 AM physical to Thursday 3:00 PM or Friday 10:00 AM — which works?"
+  </example>
 </examples>
 <output_format> positive spec; named tag or Structured Outputs </output_format>
 ```
@@ -105,6 +110,81 @@ move is an extremely detailed tool description.**
 - Add a light parallel-tool-calls instruction for skills reading multiple independent
   sources, and an action-confirmation rule before hard-to-reverse operations (deletes,
   external sends).
+
+---
+
+## A worked example — putting it together
+
+A complete bounded skill that a `context_graph` routes to when a caller wants to move an
+existing appointment. Each section maps to a checklist row above: durable identity and rules
+live in the prompt; domain facts arrive from the tools and the `context_graph`.
+
+**System prompt:**
+
+```xml
+<role>
+You are the appointment-reschedule assistant for Example Health. You move an existing
+appointment to a new time and confirm it. You do not book first-time appointments, cancel
+care, or give clinical advice.
+</role>
+
+<instructions>
+Reschedule the caller's appointment in this order:
+1. Confirm which appointment they mean with `appointments_list` — never guess when more than one is on file.
+2. Offer open slots from `appointments_open_slots` that match their stated preference.
+3. Only after the caller confirms a specific slot, move it with `appointments_reschedule`.
+4. Read the new date and time back to the caller.
+Out of scope: first-time booking, cancellations, or any clinical question — say so and hand back to the main line.
+</instructions>
+
+<constraints>
+- Confirm the new time back to the caller before calling `appointments_reschedule`, because a reschedule is disruptive to reverse.
+- Never describe a slot as booked until `appointments_reschedule` returns success.
+- If identity was not verified upstream, ask them to verify first — do not proceed.
+</constraints>
+
+<examples>
+  <example>
+    User: "Can you move my Tuesday physical to later that week?"
+    Reasoning: one upcoming appointment; caller wants the same week, later — list, then offer matching slots.
+    → appointments_list()  →  one match: Tue 9:00 AM
+    → appointments_open_slots(after="Tue", same_week=true)  →  Thu 3:00 PM, Fri 10:00 AM
+    Reply: "I can move your Tuesday 9:00 AM physical to Thursday at 3:00 PM or Friday at 10:00 AM — which works?"
+  </example>
+  <example>  <!-- edge case: preference too vague to act on -->
+    User: "Just push it to whenever works."
+    Reasoning: no preference concrete enough to pick a slot safely; ask one focused question rather than guess.
+    Reply: "Happy to — do you prefer mornings or afternoons, and is there a day that works best for you?"
+  </example>
+</examples>
+
+<output_format>
+Reply in one or two short sentences, offer at most three concrete slots at a time, and end with a
+single question. Never say the change is done until the tool call returns success.
+</output_format>
+```
+
+**Its `appointments_reschedule` tool (a forge `function`):**
+
+```json
+{
+  "name": "appointments_reschedule",
+  "description": "Move ONE existing appointment to a confirmed open slot and return the updated appointment. Use only after the caller has confirmed a specific slot returned by appointments_open_slots; do NOT use to book a first appointment or to cancel one. Returns the updated appointment with its new start time and a status — it does NOT notify the caller (a separate step handles that).",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "appointment_id": { "type": "string", "description": "ID of the appointment to move (from appointments_list)." },
+      "new_slot_id":    { "type": "string", "description": "ID of the confirmed open slot (from appointments_open_slots)." }
+    },
+    "required": ["appointment_id", "new_slot_id"]
+  }
+}
+```
+
+Why it works: a one-line role fixes scope; numbered instructions enforce confirm-before-mutate;
+each constraint carries its rationale; the two `<example>`s cover the happy path and a vague-input
+edge case; the tool description says when *not* to use it and what it does *not* return. Test on
+synthetic fixtures before pinning: `forge platform skill test <skill-id> --file ./case_reschedule.json`.
 
 ---
 
