@@ -14,7 +14,7 @@ you ask.
 
 ```bash
 # 1. Add this marketplace (one time)
-claude plugin marketplace add amigo-ai/forge-skills
+claude plugin marketplace add amigo-ai-solutions/forge-skills
 
 # 2. Install the forge plugin
 claude plugin install forge@amigo-forge
@@ -45,7 +45,7 @@ Add to your project's `.claude/settings.json` so teammates are prompted to insta
 ```json
 {
   "extraKnownMarketplaces": {
-    "amigo-forge": { "source": { "source": "github", "repo": "amigo-ai/forge-skills" } }
+    "amigo-forge": { "source": { "source": "github", "repo": "amigo-ai-solutions/forge-skills" } }
   },
   "enabledPlugins": { "forge@amigo-forge": true }
 }
