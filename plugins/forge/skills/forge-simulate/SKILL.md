@@ -57,7 +57,7 @@ wherever these steps use `edge`.
 
 ### 2. Multi-scenario regression (bridge)
 
-Run a batch of synthetic scenarios against the service. Rule of thumb: about 10 sims per topic for the safety-critical and core behaviors you care about, so raise `--num-scenarios` accordingly.
+Run a batch of synthetic scenarios against the service. **Sample enough to see the distribution, not one draw:** a non-deterministic stage needs roughly **30 samples** to characterize its output distribution — running a multi-branch agent 3 times tells you almost nothing. Use **≥10 sims per topic** as the GO/NO-GO gate, and **~30+** when you are *characterizing* a behavior or *comparing* `edge` vs `release` at parity. Raise `--num-scenarios` accordingly.
 
 ```bash
 forge platform sim bridge \
@@ -129,7 +129,7 @@ Before promoting, diff the two version-sets and confirm the `edge` sims match or
 forge platform version-set diff 00000000-0000-0000-0000-000000000000 edge release --env staging --json
 ```
 
-GO / NO-GO rule of thumb: for each topic, ~10 sims on the safety-critical and core behaviors, `edge` at parity-or-better with `release`, no regression in the coverage graph. If any of that fails, it is a NO-GO — fix on `edge` and re-run from step 2. Do not promote.
+GO / NO-GO rule of thumb: for each topic, ~10 sims on the safety-critical and core behaviors (use ~30+ when the call is close or you're proving `edge`↔`release` parity — see step 2), `edge` at parity-or-better with `release`, no regression in the coverage graph. If any of that fails, it is a NO-GO — fix on `edge` and re-run from step 2. Do not promote.
 
 ### 7. Cut over (promote) — mutation, requires --apply
 
