@@ -32,6 +32,21 @@ You can also invoke a skill explicitly:
 
 List installed skills with `/plugin`.
 
+## Skills
+
+Building an Amigo agent with the `forge` CLI, front to back:
+
+| Skill | Use it to… |
+|---|---|
+| `forge-agent-design` | Scope an agent *before* building — decide where each piece of complexity belongs (a deterministic `function` vs a `context_graph` state vs an isolated `skill` vs a router vs multi-agent). Read this first. |
+| `forge-build-agent` | Stand up the entities end-to-end: `persona` → `function`s → `context_graph` → `agent` → `skill`s → `service` → a pinned `version-set`. |
+| `forge-validate` | Run the local, no-auth pre-push gate over your entity JSON (`forge validate`). |
+| `forge-sync` | Pull, edit, validate, and push entity data between local and the Platform (`sync-to-local`/`sync-to-remote`, `platform push`). |
+| `forge-simulate` | Regression-test and prove parity before promoting a `version-set`, keeping a rollback path. |
+
+Each skill fires automatically when your request matches, or invoke one explicitly, e.g.
+`/forge:forge-agent-design`.
+
 ## Updating
 
 ```bash
