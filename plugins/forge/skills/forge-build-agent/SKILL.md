@@ -103,7 +103,7 @@ separate entity.
 > **How to author the agent's instructions and design context-graph states** — identity's
 > ~70-80% rule, action guidelines vs. boundary constraints, minimal viable constraint, the
 > four state types, naming, and lean globals — see
-> `${CLAUDE_PLUGIN_ROOT}/skills/forge-build-agent/reference/agent-context-graph-authoring.md`.
+> `reference/agent-context-graph-authoring.md`.
 
 ```bash
 forge platform agent create --name "Acme Support Agent" --description "Handles order and account questions"
@@ -119,7 +119,7 @@ Author must-be-exact or narrowly-scoped concerns as `skill`s, test them, then re
 > **A `skill` is a single Anthropic-model system prompt that uses tools.** For how to write
 > that system prompt (role, clear instructions, examples, output format), define its tools,
 > and choose/tune a model tier, see
-> `${CLAUDE_PLUGIN_ROOT}/skills/forge-build-agent/reference/skill-prompting.md`.
+> `reference/skill-prompting.md`.
 
 ```bash
 forge platform skill create --file ./verify_identity_skill.json

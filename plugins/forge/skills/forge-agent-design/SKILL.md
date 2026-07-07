@@ -56,7 +56,7 @@ The agent's **identity/voice** carries most behavior — author it in the `agent
 global instructions (reinforced by the `context_graph`), not as scattered per-state rules.
 
 For the full rung table, a symptom -> forge-entity lookup, and worked examples, see
-`${CLAUDE_PLUGIN_ROOT}/skills/forge-agent-design/reference/placement-cascade.md`.
+`reference/placement-cascade.md`.
 
 ## Workflow or agent? (Anthropic)
 

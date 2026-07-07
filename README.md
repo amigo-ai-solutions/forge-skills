@@ -1,17 +1,29 @@
-# Amigo forge skills for Claude Code
+# Amigo forge skills for Claude Code and Codex
 
-Claude Code skills that let Claude drive the Amigo `forge` CLI for you - designing, building,
-validating, deploying, and simulation-testing Amigo agents on the Platform - automatically,
-based on what you ask.
+Skills that let Claude Code or Codex drive the Amigo `forge` CLI for you - designing, building,
+validating, deploying, and simulation-testing Amigo agents on the Platform - automatically, based on
+what you ask.
 
 ## Prerequisites
 
-1. **Claude Code** installed.
+1. **Claude Code or Codex** installed.
 2. **The `forge` binary** (**0.1.23 or newer**) on your `PATH` — see the agent-forge-go install
    docs, or `curl -fsSL https://forge.platform.amigo.ai/install.sh | sh`. These skills drive the
    binary you already have; they don't install it. (Model configuration needs 0.1.23+.)
 
 ## Install
+
+### Codex
+
+```bash
+# 1. Add this marketplace (one time)
+codex plugin marketplace add amigo-ai-solutions/forge-skills
+```
+
+Then open Codex, run `/plugins`, choose the **Amigo Forge** marketplace, and install the `forge`
+plugin.
+
+### Claude Code
 
 ```bash
 # 1. Add this marketplace (one time)
@@ -23,15 +35,23 @@ claude plugin install forge@amigo-forge
 
 ## Use
 
-In any forge project, just describe what you want - Claude picks the matching skill
-automatically (e.g. "test the forge placeholder skill").
-You can also invoke a skill explicitly:
+In any forge project, just describe what you want - your coding agent picks the matching skill
+automatically (e.g. "test the forge placeholder skill"). You can also invoke a skill explicitly:
+
+Codex:
+
+```text
+$hello-forge
+$forge-agent-design
+```
+
+Claude Code:
 
 ```text
 /forge:hello-forge
 ```
 
-List installed skills with `/plugin`.
+List installed skills/plugins with `/plugins` in Codex or `/plugin` in Claude Code.
 
 ## Skills
 
@@ -46,9 +66,23 @@ Building an Amigo agent with the `forge` CLI, front to back:
 | `forge-simulate` | Regression-test and prove parity before promoting a `version-set`, keeping a rollback path. |
 
 Each skill fires automatically when your request matches, or invoke one explicitly, e.g.
-`/forge:forge-agent-design`.
+`$forge-agent-design` in Codex or `/forge:forge-agent-design` in Claude Code.
 
 ## Updating
+
+### Codex
+
+Installed plugins pick up new versions after Codex refreshes the marketplace catalog and the
+installed plugin is updated. Refresh the marketplace from a shell:
+
+```bash
+codex plugin marketplace upgrade amigo-forge
+```
+
+Then open `/plugins`, update the installed `forge` plugin if prompted, and start a new thread so
+Codex reloads the plugin instructions.
+
+### Claude Code
 
 Installed plugins only pick up new skill versions once the marketplace catalog is refreshed, the
 installed plugin is updated to that version, **and** the running Claude Code session reloads its
@@ -88,7 +122,7 @@ claude plugin update forge@amigo-forge         # from a shell
 update takes effect without restarting. Skip step 3 and the new version won't load until you
 restart Claude Code.
 
-## Optional: auto-enable inside a project
+## Optional: auto-enable inside a Claude Code project
 
 Add to your project's `.claude/settings.json` so teammates are prompted to install on trust.
 Setting `"autoUpdate": true` on the marketplace entry keeps the `forge` plugin updated at startup
@@ -111,5 +145,7 @@ When auto-update installs a new version at startup, Claude Code prompts you to r
 
 ## Troubleshooting
 
-- Skill not firing? Confirm the plugin is enabled (`/plugin`) and you're in a forge project.
-- Reinstall: `claude plugin marketplace update amigo-forge` then re-run install.
+- Skill not firing? Confirm the plugin is enabled (`/plugins` in Codex or `/plugin` in Claude Code)
+  and you're in a forge project.
+- Codex reinstall: `codex plugin marketplace upgrade amigo-forge`, then reinstall from `/plugins`.
+- Claude Code reinstall: `claude plugin marketplace update amigo-forge` then re-run install.

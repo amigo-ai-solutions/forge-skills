@@ -1,0 +1,27 @@
+{
+  "name": "forge",
+  "version": "0.2.6",
+  "description": "Skills for the Amigo forge CLI",
+  "author": {
+    "name": "Amigo",
+    "email": "support@amigo.ai"
+  },
+  "repository": "https://github.com/amigo-ai-solutions/forge-skills",
+  "license": "MIT",
+  "keywords": ["amigo", "forge", "agents", "platform"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Amigo Forge",
+    "shortDescription": "Build, validate, sync, and simulate Amigo agents with forge.",
+    "longDescription": "Skills for driving the Amigo forge CLI to design, build, validate, deploy, and simulation-test Amigo agents on the Platform.",
+    "developerName": "Amigo",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": [
+      "Validate my forge entity JSON before a platform push.",
+      "Build an Amigo agent and service with forge.",
+      "Run regression simulations before promoting a version-set."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

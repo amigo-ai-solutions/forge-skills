@@ -12,7 +12,7 @@ description: <One-two sentences. Start with what it does, then "Use when ..." li
 ## Workflow
 
 <numbered steps that invoke `forge ...` commands; reference bundled scripts as
-${CLAUDE_PLUGIN_ROOT}/skills/<name>/scripts/...>
+scripts/<helper>.sh or "${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/skills/<name>/scripts/...">
 
 ## Safety
 

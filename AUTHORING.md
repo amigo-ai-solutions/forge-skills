@@ -1,15 +1,20 @@
 # Authoring forge skills
 
-This repository publishes the public `amigo-forge` Claude Code plugin marketplace. Add new customer-facing skills conservatively and keep them tied to commands that exist in the **released** Go `forge` binary — verify against the release artifact (currently ≥ 0.1.23), not a local source build, which can be ahead of what customers run.
+This repository publishes the public `amigo-forge` skill marketplace for Claude Code and Codex. Add new customer-facing skills conservatively and keep them tied to commands that exist in the **released** Go `forge` binary — verify against the release artifact (currently ≥ 0.1.23), not a local source build, which can be ahead of what customers run.
 
 ## Layout
 
 ```text
 forge-skills/
+├── .agents/
+│   └── plugins/
+│       └── marketplace.json
 ├── .claude-plugin/
 │   └── marketplace.json
 ├── plugins/
 │   └── forge/
+│       ├── .codex-plugin/
+│       │   └── plugin.json
 │       ├── .claude-plugin/
 │       │   └── plugin.json
 │       └── skills/
@@ -22,7 +27,7 @@ forge-skills/
 └── LICENSE
 ```
 
-New skills go in `plugins/forge/skills/<name>/SKILL.md`. Put helper scripts under `plugins/forge/skills/<name>/scripts/` and make executable scripts executable.
+New skills go in `plugins/forge/skills/<name>/SKILL.md`. Put helper scripts under `plugins/forge/skills/<name>/scripts/` and make executable scripts executable. Keep `.codex-plugin/plugin.json` and `.claude-plugin/plugin.json` at the same version whenever a released skill changes.
 
 ## Command surface (hard rules)
 
@@ -33,7 +38,7 @@ New skills go in `plugins/forge/skills/<name>/SKILL.md`. Put helper scripts unde
 
 ## Trigger descriptions
 
-The `description` frontmatter is the primary quality bar. Claude invokes skills semantically, so descriptions must name observable customer context instead of internal Amigo cues.
+The `description` frontmatter is the primary quality bar. Claude Code and Codex invoke skills semantically, so descriptions must name observable customer context instead of internal Amigo cues.
 
 Good descriptions include concrete triggers such as:
 
@@ -44,12 +49,19 @@ Good descriptions include concrete triggers such as:
 
 Do not rely on repo-internal phrases, private branch names, or implementation details that customers will not say.
 
-## Bundled scripts
+## Bundled references and scripts
 
-Installed plugins are copied to `~/.claude/plugins/cache`, so bundled scripts must be referenced through `${CLAUDE_PLUGIN_ROOT}`:
+Prefer relative references from the skill directory for bundled files:
+
+```text
+reference/<file>.md
+scripts/<helper>.sh
+```
+
+When a shell command truly needs the installed plugin root, write it so both plugin surfaces work:
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/skills/<name>/scripts/<helper>.sh staging test-org
+"${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/skills/<name>/scripts/<helper>.sh" staging test-org
 ```
 
 Do not use repo-relative paths such as `.codex/skills/...` or `plugins/forge/skills/...` inside skill workflows.
@@ -69,8 +81,10 @@ Use these placeholders:
 ## Release process
 
 1. Add or update skills.
-2. Bump `version` in `plugins/forge/.claude-plugin/plugin.json`.
-3. Validate the marketplace.
+2. Bump `version` in both plugin manifests:
+   - `plugins/forge/.codex-plugin/plugin.json`
+   - `plugins/forge/.claude-plugin/plugin.json`
+3. Validate both plugin surfaces.
 4. Commit and open a PR.
 5. After merge, tag the release as `vX.Y.Z`.
 
@@ -103,7 +117,7 @@ description: <One-two sentences. Start with what it does, then "Use when ..." li
 ## Workflow
 
 <numbered steps that invoke `forge ...` commands; reference bundled scripts as
-${CLAUDE_PLUGIN_ROOT}/skills/<name>/scripts/...>
+scripts/<helper>.sh or "${PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/skills/<name>/scripts/...">
 
 ## Safety
 
